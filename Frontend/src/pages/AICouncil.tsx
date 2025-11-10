@@ -65,11 +65,11 @@ const AICouncil = () => {
     setAnalyzing(true);
     try {
       const question = "Does this incident meet Title IX hostile environment standard?";
-      const result = await aiAPI.runConsensus(question, caseData);
+      const result = await aiAPI.analyzeCase(caseData.id, question);
       setAnalysisResult(result);
       toast({
         title: "Analysis complete",
-        description: `AI Council reached ${result.consensus_decision} with ${Math.round(result.consensus_confidence * 100)}% confidence.`,
+        description: `AI Council reached ${result.decision} with ${Math.round(result.confidence * 100)}% confidence.`,
       });
     } catch (error) {
       console.error("Analysis failed:", error);
@@ -119,7 +119,7 @@ const AICouncil = () => {
   }
 
   // Check if there's disagreement
-  const hasDisagreement = analysisResult?.disagreement_flag || false;
+  const hasDisagreement = analysisResult?.has_disagreement || false;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
@@ -219,7 +219,7 @@ const AICouncil = () => {
               <Card className={`p-8 bg-gradient-to-br ${
                 hasDisagreement
                   ? "from-warning/10 to-background border-2 border-warning"
-                  : analysisResult.consensus_decision === "NO"
+                  : analysisResult.decision === "NO"
                   ? "from-destructive/10 to-background border-2 border-destructive"
                   : "from-primary/10 to-background border-2 border-primary"
               } shadow-lg`}>
@@ -234,14 +234,14 @@ const AICouncil = () => {
                     <h2 className={`text-6xl font-extrabold animate-in fade-in-50 zoom-in-95 duration-500 ${
                       hasDisagreement
                         ? "text-warning"
-                        : analysisResult.consensus_decision === "YES"
+                        : analysisResult.decision === "YES"
                         ? "text-success"
                         : "text-destructive"
                     }`}>
-                      {analysisResult.consensus_decision}
+                      {analysisResult.decision}
                     </h2>
                     <p className="text-xl text-muted-foreground">
-                      [{Math.round(analysisResult.consensus_confidence * 100)}% confidence]
+                      [{Math.round(analysisResult.confidence * 100)}% confidence]
                     </p>
                   </div>
 
@@ -251,14 +251,14 @@ const AICouncil = () => {
                         className={`absolute inset-y-0 left-0 bg-gradient-to-r ${
                           hasDisagreement
                             ? "from-warning to-destructive"
-                            : analysisResult.consensus_decision === "YES"
+                            : analysisResult.decision === "YES"
                             ? "from-success to-primary"
                             : "from-destructive to-red-600"
                         } animate-in slide-in-from-left-full duration-1000 flex items-center justify-end pr-3`}
-                        style={{ width: `${analysisResult.consensus_confidence * 100}%` }}
+                        style={{ width: `${analysisResult.confidence * 100}%` }}
                       >
                         <span className="text-xs font-bold text-white">
-                          {Math.round(analysisResult.consensus_confidence * 100)}%
+                          {Math.round(analysisResult.confidence * 100)}%
                         </span>
                       </div>
                     </div>
@@ -310,14 +310,14 @@ const AICouncil = () => {
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">Individual Agent Analysis</h2>
 
-                {analysisResult.agent_votes.map((agent: any) => {
-                  const isExpanded = expandedAgents.includes(agent.agent);
-                  const config = getAgentConfig(agent.agent);
+                {analysisResult.agent_breakdown.map((agent: any) => {
+                  const isExpanded = expandedAgents.includes(agent.agent_name);
+                  const config = getAgentConfig(agent.agent_name);
                   const Icon = config.icon;
 
                   return (
                     <Card
-                      key={agent.agent}
+                      key={agent.agent_name}
                       className={`transition-all duration-300 hover-lift border-2`}
                       style={{
                         borderColor: isExpanded ? `hsl(var(--${config.color}))` : `hsl(var(--${config.color}) / 0.3)`,
@@ -326,7 +326,7 @@ const AICouncil = () => {
                       {/* Card Header */}
                       <div
                         className="p-5 cursor-pointer"
-                        onClick={() => toggleAgent(agent.agent)}
+                        onClick={() => toggleAgent(agent.agent_name)}
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-3 flex-1">
@@ -335,8 +335,8 @@ const AICouncil = () => {
                               style={{ backgroundColor: `hsl(var(--${config.color}))` }}
                             />
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-lg font-bold">{agent.agent}</h3>
-                              <p className="text-sm text-muted-foreground">{agent.specialty}</p>
+                              <h3 className="text-lg font-bold">{agent.agent_name}</h3>
+                              <p className="text-sm text-muted-foreground">{agent.agent_role}</p>
 
                               {!isExpanded && (
                                 <div className="mt-3 space-y-2">

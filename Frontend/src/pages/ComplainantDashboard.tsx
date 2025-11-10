@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, FileText, MessageSquare, HelpCircle, CheckCircle, Clock, ArrowLeft, Plus } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import GlobalFooter from "@/components/GlobalFooter";
 
 const ComplainantDashboard = () => {
   const navigate = useNavigate();
@@ -195,6 +196,9 @@ const ComplainantDashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Global Footer */}
+      <GlobalFooter />
     </div>
   );
 };

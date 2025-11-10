@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { Lock, CheckCircle, Upload, FileText, ArrowLeft, ArrowRight, LayoutDashboard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import GlobalFooter from "@/components/GlobalFooter";
 
 const ComplainantIntake = () => {
   const navigate = useNavigate();
@@ -251,6 +252,9 @@ const ComplainantIntake = () => {
           )}
         </div>
       </main>
+
+      {/* Global Footer */}
+      <GlobalFooter />
     </div>
   );
 };

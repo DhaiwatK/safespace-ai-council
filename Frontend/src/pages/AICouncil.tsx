@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { casesAPI, aiAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import GlobalFooter from "@/components/GlobalFooter";
 
 const AICouncil = () => {
   const location = useLocation();
@@ -458,6 +459,9 @@ const AICouncil = () => {
           )}
         </div>
       </main>
+
+      {/* Global Footer */}
+      <GlobalFooter />
     </div>
   );
 };

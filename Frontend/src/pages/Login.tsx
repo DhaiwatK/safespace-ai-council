@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, UserCircle, Search, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import GlobalFooter from '@/components/GlobalFooter';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -133,10 +134,9 @@ const Login = () => {
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Built with FastAPI + React + Multi-Agent AI System</p>
-          <p className="mt-1">© 2025 Northwestern University - AI Council Hackathon</p>
+        {/* Global Footer */}
+        <div className="mt-6">
+          <GlobalFooter />
         </div>
       </div>
     </div>

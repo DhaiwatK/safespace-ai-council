@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, Users, Settings, Phone } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import GlobalFooter from "@/components/GlobalFooter";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -104,10 +105,13 @@ const Landing = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
+      {/* Security Notice */}
+      <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
         <p>🔒 All communications encrypted end-to-end • Confidential & secure</p>
-      </footer>
+      </div>
+
+      {/* Global Footer */}
+      <GlobalFooter />
     </div>
   );
 };

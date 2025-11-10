@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { casesAPI, aiAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import GlobalFooter from "@/components/GlobalFooter";
 
 const InvestigatorDashboard = () => {
   const navigate = useNavigate();
@@ -255,6 +256,9 @@ const InvestigatorDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Global Footer */}
+      <GlobalFooter />
     </div>
   );
 };

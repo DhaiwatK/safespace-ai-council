@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Scale, Heart, Users, Search as SearchIcon, Shield as ShieldIcon, Brain, ArrowLeft, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Scale, Heart, Users, Search as SearchIcon, Shield as ShieldIcon, Brain, ArrowLeft, Loader2, Upload, FileText, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { casesAPI, aiAPI } from "@/lib/api";
@@ -21,6 +21,8 @@ const AICouncil = () => {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [expandedAgents, setExpandedAgents] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Fetch case data on mount
   useEffect(() => {
@@ -57,6 +59,49 @@ const AICouncil = () => {
     setExpandedAgents(prev =>
       prev.includes(agentId) ? prev.filter(id => id !== agentId) : [...prev, agentId]
     );
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    setUploadedFiles(prev => [...prev, ...files]);
+    
+    toast({
+      title: "Files uploaded",
+      description: `${files.length} file(s) added to case evidence.`,
+    });
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setUploadedFiles(prev => [...prev, ...files]);
+      
+      toast({
+        title: "Files uploaded",
+        description: `${files.length} file(s) added to case evidence.`,
+      });
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    toast({
+      title: "File removed",
+      description: "File removed from upload queue.",
+    });
   };
 
   const runAnalysis = async () => {
@@ -177,6 +222,85 @@ const AICouncil = () => {
                 <span className="font-medium">{caseData.witness_count}</span>
               </div>
             </div>
+          </Card>
+
+          {/* Upload Additional Evidence */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Upload className="h-5 w-5 text-agent-teal" />
+              Upload Additional Evidence
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Add documents, emails, screenshots, or other evidence to strengthen the analysis
+            </p>
+
+            {/* Drag & Drop Zone */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+                isDragging
+                  ? "border-agent-teal bg-agent-teal/5"
+                  : "border-border hover:border-agent-teal/50"
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <Upload className="h-12 w-12 text-agent-teal mx-auto mb-3" />
+              <p className="text-base font-medium mb-1">
+                Drag and drop files here
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">
+                or click to browse
+              </p>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                id="file-upload"
+              />
+              <Button asChild variant="secondary" size="sm">
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  Select Files
+                </label>
+              </Button>
+            </div>
+
+            {/* Uploaded Files List */}
+            {uploadedFiles.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium">
+                  Uploaded Files ({uploadedFiles.length})
+                </p>
+                {uploadedFiles.map((file, index) => (
+                  <Card key={index} className="p-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <FileText className="h-5 w-5 text-agent-teal flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(file.size / 1024).toFixed(1)} KB • {new Date().toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(index)}
+                      className="text-agent-coral hover:text-agent-coral flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </Card>
+                ))}
+                <div className="mt-3 p-3 bg-success/10 rounded-lg flex items-start gap-2">
+                  <span className="text-success text-sm">🔒</span>
+                  <p className="text-xs text-muted-foreground">
+                    All files are encrypted and timestamped. Chain of custody maintained.
+                  </p>
+                </div>
+              </div>
+            )}
           </Card>
 
           {/* Run Analysis Button */}

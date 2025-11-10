@@ -115,14 +115,6 @@ const Login = () => {
               })}
             </div>
 
-            {/* Demo Notice */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800 text-center">
-                <strong>Demo Mode:</strong> This is a demonstration system. Click any role to
-                explore the platform. No real authentication required.
-              </p>
-            </div>
-
             {/* Features */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <div className="p-3 bg-purple-50 rounded-lg">

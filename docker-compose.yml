@@ -22,10 +22,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    volumes:
-      # Optional: mount for development
-      # - ./backend/app:/app/app
-      pass
+    # Optional: Uncomment to mount backend for live development
+    # volumes:
+    #   - ./backend/app:/app/app
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]

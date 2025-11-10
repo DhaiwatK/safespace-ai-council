@@ -22,10 +22,21 @@ class MockLLMProvider(BaseLLMProvider):
     """Mock LLM for testing - returns realistic hardcoded responses"""
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
-        """Return mock response based on agent type"""
+        """Return mock response based on agent type and case context"""
+
+        # Check if this is the weak case (NW-2025-TIX-0147 / case_001) with inconsistencies
+        is_weak_case = "inconsistencies" in user_prompt or "alibi" in user_prompt or "case_001" in user_prompt or "0147" in user_prompt
 
         # Detect which agent is calling based on system prompt
         if "Title IX legal" in system_prompt or "Lex" in system_prompt:
+            if is_weak_case:
+                return json.dumps({
+                    "vote": "NO",
+                    "confidence": 0.75,
+                    "reasoning": "While alleged conduct could meet Title IX standards, significant evidentiary issues undermine jurisdiction. Timeline inconsistencies place complainant and respondent in different locations during alleged incident. Post-incident friendly communications contradict hostile environment claim. Respondent's corroborated alibi creates reasonable doubt. Insufficient evidence to proceed under preponderance of evidence standard.",
+                    "citations": ["Title IX requires preponderance of evidence", "Davis v. Monroe - objective offensiveness standard"],
+                    "procedural_notes": ["Insufficient evidence for Title IX violation finding", "Consider alternative resolution options"]
+                })
             return json.dumps({
                 "vote": "YES",
                 "confidence": 0.95,
@@ -35,6 +46,14 @@ class MockLLMProvider(BaseLLMProvider):
             })
 
         elif "trauma-informed" in system_prompt or "Sofia" in system_prompt:
+            if is_weak_case:
+                return json.dumps({
+                    "vote": "YES",
+                    "confidence": 0.55,
+                    "reasoning": "Memory inconsistencies could reflect trauma responses, but alternate explanation is equally plausible. Post-incident friendly contact is atypical but not impossible for trauma survivors. Recommend trauma-informed interview to explore discrepancies, but cannot definitively attribute inconsistencies to trauma versus factual inaccuracy.",
+                    "trauma_indicators": ["Possible memory fragmentation", "Delayed reporting"],
+                    "recommendations": ["Trauma-informed follow-up interview recommended", "Cannot conclusively determine trauma response vs. factual inconsistency"]
+                })
             return json.dumps({
                 "vote": "YES",
                 "confidence": 0.90,
@@ -44,6 +63,14 @@ class MockLLMProvider(BaseLLMProvider):
             })
 
         elif "bias" in system_prompt or "Equity" in system_prompt:
+            if is_weak_case:
+                return json.dumps({
+                    "vote": "NO",
+                    "confidence": 0.70,
+                    "reasoning": "No evidence of investigative bias. Both parties treated equitably in process. However, concern that proceeding without sufficient evidence could create perceived bias against respondent. Fairness requires strong evidence before imposing sanctions.",
+                    "bias_flags": ["Risk of respondent bias if proceeding on weak evidence"],
+                    "equity_notes": ["Equal treatment in investigation", "Procedural fairness concerns with weak evidence"]
+                })
             return json.dumps({
                 "vote": "YES",
                 "confidence": 0.85,
@@ -53,6 +80,15 @@ class MockLLMProvider(BaseLLMProvider):
             })
 
         elif "evidence" in system_prompt or "Holmes" in system_prompt:
+            if is_weak_case:
+                return json.dumps({
+                    "vote": "NO",
+                    "confidence": 0.82,
+                    "reasoning": "Critical evidentiary deficiencies prevent finding. Witness statements directly contradict complainant timeline - both parties documented in separate locations. Text messages post-incident show friendly, non-coerced communication. Respondent alibi corroborated by multiple sources. Evidence fails to meet preponderance standard.",
+                    "evidence_strength": "Weak",
+                    "corroboration": ["Respondent alibi strongly corroborated"],
+                    "gaps": ["Timeline contradiction", "Lack of contemporaneous complaint", "Friendly post-incident contact undermines hostile environment claim"]
+                })
             return json.dumps({
                 "vote": "YES",
                 "confidence": 0.80,
@@ -63,6 +99,15 @@ class MockLLMProvider(BaseLLMProvider):
             })
 
         elif "risk" in system_prompt or "Sentinel" in system_prompt:
+            if is_weak_case:
+                return json.dumps({
+                    "vote": "NO",
+                    "confidence": 0.65,
+                    "reasoning": "No prior history or pattern for respondent. Low institutional risk. Proceeding with weak evidence creates reputational risk to university and respondent. Recommend alternative dispute resolution or informal resolution options rather than formal finding.",
+                    "risk_score": 0.25,
+                    "pattern_flags": [],
+                    "recommendations": ["Consider informal resolution", "No pattern of repeat behavior", "Low retaliation risk - no power differential"]
+                })
             return json.dumps({
                 "vote": "YES",
                 "confidence": 0.92,
@@ -75,9 +120,9 @@ class MockLLMProvider(BaseLLMProvider):
         else:
             # Generic response
             return json.dumps({
-                "vote": "YES",
-                "confidence": 0.75,
-                "reasoning": "Based on the available evidence and applicable standards, this case warrants proceeding with investigation."
+                "vote": "NO" if is_weak_case else "YES",
+                "confidence": 0.60 if is_weak_case else 0.75,
+                "reasoning": "Evidence insufficient to proceed" if is_weak_case else "Based on the available evidence and applicable standards, this case warrants proceeding with investigation."
             })
 
 

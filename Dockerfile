@@ -13,7 +13,9 @@ RUN npm install
 # Copy frontend source
 COPY Frontend/ ./
 
-# Build frontend
+# Build frontend for production
+ENV NODE_ENV=production
+ENV VITE_API_URL=""
 RUN npm run build
 
 

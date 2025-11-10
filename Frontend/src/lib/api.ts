@@ -2,7 +2,10 @@
  * API client for SafeSpace AI Council Backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Use empty string (same origin) for production, localhost:8000 for dev
+const API_BASE_URL = import.meta.env.VITE_API_URL !== undefined
+  ? import.meta.env.VITE_API_URL
+  : (import.meta.env.DEV ? 'http://localhost:8000' : '');
 
 // Helper function for API requests
 async function apiRequest<T>(

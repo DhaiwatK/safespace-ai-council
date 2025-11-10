@@ -37,7 +37,7 @@ const InvestigatorDashboard = () => {
         console.error("Failed to fetch data:", error);
         toast({
           title: "Failed to load data",
-          description: "Could not connect to backend. Using demo mode.",
+          description: "Could not connect to backend.",
           variant: "destructive"
         });
       } finally {
@@ -46,7 +46,7 @@ const InvestigatorDashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [toast]);
 
   const handleLogout = () => {
     logout();
@@ -192,7 +192,7 @@ const InvestigatorDashboard = () => {
                   return (
                     <Card
                       key={caseItem.id}
-                      className={`p-6 hover-lift cursor-pointer border-l-4 ${
+                      className={`p-6 cursor-pointer border-l-4 transition-transform hover:scale-[1.01] ${
                         caseItem.priority === "Urgent" ? "border-l-destructive" : "border-l-primary"
                       }`}
                       onClick={() => navigate("/investigator/council", { state: { caseId: caseItem.id } })}

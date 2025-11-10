@@ -58,23 +58,44 @@ async def get_config():
 
 # Serve frontend static files (for production Docker build)
 # Check if frontend build exists
+# In Docker: /app/Frontend/dist
+# In local dev: ../../Frontend/dist
 frontend_build_path = os.path.join(os.path.dirname(__file__), "../../Frontend/dist")
+if not os.path.exists(frontend_build_path):
+    # Try Docker path
+    frontend_build_path = "/app/Frontend/dist"
+
+print(f"Frontend build path: {frontend_build_path}")
+print(f"Frontend exists: {os.path.exists(frontend_build_path)}")
 
 if os.path.exists(frontend_build_path):
+    # Mount static assets
     app.mount("/assets", StaticFiles(directory=f"{frontend_build_path}/assets"), name="assets")
 
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        """Serve frontend for all non-API routes"""
-        if full_path.startswith("api/"):
-            return {"error": "API endpoint not found"}
+    # Import Request for accessing the request object
+    from fastapi import Request
+    from starlette.exceptions import HTTPException as StarletteHTTPException
 
-        # Serve index.html for all routes (SPA)
-        index_path = os.path.join(frontend_build_path, "index.html")
-        if os.path.exists(index_path):
+    # Custom exception handler to serve SPA for 404s on non-API routes
+    @app.exception_handler(StarletteHTTPException)
+    async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+        # If it's a 404 and NOT an API route, serve the SPA
+        if exc.status_code == 404 and not request.url.path.startswith("/api"):
+            index_path = os.path.join(frontend_build_path, "index.html")
             return FileResponse(index_path)
+        # Otherwise, return the original error
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
 
-        return {"error": "Frontend not found"}
+    # Serve index.html for root
+    @app.get("/")
+    async def serve_root():
+        """Serve frontend index"""
+        index_path = os.path.join(frontend_build_path, "index.html")
+        return FileResponse(index_path)
 
 
 if __name__ == "__main__":

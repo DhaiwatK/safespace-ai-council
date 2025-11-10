@@ -38,11 +38,6 @@ const AICouncil = () => {
       try {
         const data = await casesAPI.getCase(caseId);
         setCaseData(data);
-
-        // If case has pre-processed analysis, load it
-        if (data.analysis) {
-          setAnalysisResult(data.analysis);
-        }
       } catch (error) {
         console.error("Failed to fetch case:", error);
         toast({
@@ -184,7 +179,7 @@ const AICouncil = () => {
             </div>
           </Card>
 
-          {/* Run Analysis Button or Show Pre-loaded Results */}
+          {/* Run Analysis Button */}
           {!analysisResult && (
             <Card className="p-8 text-center">
               <h2 className="text-xl font-semibold mb-4">Ready to Analyze</h2>
@@ -266,10 +261,6 @@ const AICouncil = () => {
                           {Math.round(analysisResult.consensus_confidence * 100)}%
                         </span>
                       </div>
-                    </div>
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>{analysisResult.yes_votes} YES • {analysisResult.no_votes} NO</span>
-                      <span>{analysisResult.yes_percentage.toFixed(0)}% agreement</span>
                     </div>
                   </div>
 

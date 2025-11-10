@@ -1,108 +1,188 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+/**
+ * API client for SafeSpace AI Council Backend
+ */
 
-// Types
-export interface Case {
-  id: string;
-  case_number: string;
-  category: string;
-  status: string;
-  priority: string;
-  filed_date: string;
-  description: string;
-  evidence_count: number;
-  witness_count: number;
+// Use empty string (same origin) for production, localhost:8000 for dev
+const API_BASE_URL = import.meta.env.VITE_API_URL !== undefined
+  ? import.meta.env.VITE_API_URL
+  : (import.meta.env.DEV ? 'http://localhost:8000' : '');
+
+// Helper function for API requests
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  };
+
+  const response = await fetch(url, config);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `API Error: ${response.status}`);
+  }
+
+  return response.json();
 }
 
-export interface AgentVote {
-  agent: string;
-  specialty: string;
-  vote: "YES" | "NO";
-  confidence: number;
-  reasoning: string;
-  citations: string[];
-}
+// Auth API
+export const authAPI = {
+  login: async (role: 'complainant' | 'respondent' | 'investigator' | 'administrator') => {
+    return apiRequest<{
+      user: {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+      };
+      token: string;
+    }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ role }),
+    });
+  },
 
-export interface ConsensusResult {
-  question: string;
-  consensus_decision: "YES" | "NO";
-  consensus_confidence: number;
-  yes_votes: number;
-  no_votes: number;
-  yes_percentage: number;
-  disagreement_flag: boolean;
-  recommendation: string;
-  agent_votes: AgentVote[];
-}
+  getCurrentUser: async () => {
+    return apiRequest<{
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+    }>('/api/auth/user');
+  },
+};
 
 // Cases API
 export const casesAPI = {
-  async getCases(): Promise<Case[]> {
-    const response = await fetch(`${API_BASE_URL}/api/cases/`);
-    if (!response.ok) throw new Error('Failed to fetch cases');
-    return response.json();
+  getCases: async (filters?: { status?: string; category?: string }) => {
+    const params = new URLSearchParams(filters as any).toString();
+    return apiRequest<any[]>(`/api/cases?${params}`);
   },
 
-  async getCase(caseId: string): Promise<Case> {
-    const response = await fetch(`${API_BASE_URL}/api/cases/${caseId}`);
-    if (!response.ok) throw new Error('Failed to fetch case');
-    return response.json();
+  getCase: async (caseId: string) => {
+    return apiRequest<any>(`/api/cases/${caseId}`);
   },
 
-  async createCase(caseData: any): Promise<Case> {
-    const response = await fetch(`${API_BASE_URL}/api/cases/`, {
+  submitComplaint: async (complaint: {
+    category: string;
+    incident_date: string;
+    incident_location?: string;
+    description: string;
+    is_ongoing: boolean;
+    is_crisis: boolean;
+  }) => {
+    return apiRequest<any>('/api/cases/intake', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(caseData)
+      body: JSON.stringify(complaint),
     });
-    if (!response.ok) throw new Error('Failed to create case');
-    return response.json();
-  }
-};
-
-// AI API
-export const aiAPI = {
-  async runConsensus(question: string, caseData: Case): Promise<ConsensusResult> {
-    const response = await fetch(`${API_BASE_URL}/api/ai/consensus`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        question,
-        case_data: caseData
-      })
-    });
-    if (!response.ok) throw new Error('Failed to run consensus');
-    return response.json();
   },
 
-  async checkBias(text: string): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/api/ai/bias-check`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
-    });
-    if (!response.ok) throw new Error('Failed to check bias');
-    return response.json();
-  }
+  getStats: async () => {
+    return apiRequest<{
+      total_cases: number;
+      active_cases: number;
+      pending_review: number;
+      approaching_deadline: number;
+      average_resolution_days: number;
+    }>('/api/cases/stats');
+  },
 };
 
 // Evidence API
 export const evidenceAPI = {
-  async uploadEvidence(caseId: string, file: File): Promise<any> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('case_id', caseId);
-
-    const response = await fetch(`${API_BASE_URL}/api/evidence/upload`, {
-      method: 'POST',
-      body: formData
-    });
-    if (!response.ok) throw new Error('Failed to upload evidence');
-    return response.json();
+  getCaseEvidence: async (caseId: string) => {
+    return apiRequest<any[]>(`/api/evidence/case/${caseId}`);
   },
 
-  async getEvidence(caseId: string): Promise<any[]> {
-    const response = await fetch(`${API_BASE_URL}/api/evidence/${caseId}`);
-    if (!response.ok) throw new Error('Failed to fetch evidence');
-    return response.json();
-  }
+  uploadEvidence: async (caseId: string, upload: {
+    file_name: string;
+    file_type: string;
+    file_data: string;
+    description?: string;
+  }) => {
+    return apiRequest<any>(`/api/evidence/upload?case_id=${caseId}`, {
+      method: 'POST',
+      body: JSON.stringify(upload),
+    });
+  },
+};
+
+// AI Analysis API
+export const aiAPI = {
+  analyzeCase: async (caseId: string, question: string) => {
+    return apiRequest<{
+      question: string;
+      decision: string;
+      confidence: number;
+      yes_votes: number;
+      no_votes: number;
+      yes_percentage: number;
+      has_disagreement: boolean;
+      agent_breakdown: Array<{
+        agent_name: string;
+        agent_role: string;
+        vote: string;
+        confidence: number;
+        reasoning: string;
+        citations?: string[];
+        recommendations?: string[];
+      }>;
+      recommendation: string;
+      analyzed_at: string;
+    }>('/api/ai/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ case_id: caseId, question }),
+    });
+  },
+
+  analyzeTitleIX: async (caseId: string) => {
+    return apiRequest<any>(`/api/ai/analyze/title-ix/${caseId}`);
+  },
+
+  getPatterns: async () => {
+    return apiRequest<any[]>('/api/ai/patterns/');
+  },
+
+  biasCheck: async (text: string) => {
+    return apiRequest<{
+      has_bias: boolean;
+      flags: Array<{
+        term: string;
+        suggestion: string;
+        severity: string;
+      }>;
+      overall_tone: string;
+    }>('/api/ai/bias-check', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  },
+};
+
+// Health check
+export const healthAPI = {
+  check: async () => {
+    return apiRequest<{
+      status: string;
+      llm_provider: string;
+      anthropic_available: boolean;
+      local_llm_available: boolean;
+    }>('/api/health');
+  },
+
+  getConfig: async () => {
+    return apiRequest<{
+      llm_provider: string;
+      anthropic_available: boolean;
+      local_llm_available: boolean;
+      can_toggle_provider: boolean;
+    }>('/api/config');
+  },
 };

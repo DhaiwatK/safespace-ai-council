@@ -1,230 +1,243 @@
 """
-Mock data for SAFESPACE AI Council demo
-Includes cases and pre-processed AI analysis results
+Mock data for SafeSpace AI Council
+Realistic test data for demo purposes
 """
+from datetime import datetime, timedelta
+import hashlib
 
-# Mock cases
-MOCK_CASES = [
-    {
-        "id": "0147",
-        "case_number": "NW-2025-TIX-0147",
-        "category": "Title IX - Sexual Harassment",
-        "status": "Investigation",
-        "priority": "Standard",
-        "filed_date": "2025-03-15",
-        "description": "Complainant reports unwanted sexual advances by fellow MBA student at off-campus networking event. Incident occurred on March 12. However, timeline inconsistencies noted: complainant states event was 'around 8pm' but event ended at 7:30pm per venue records. Witness A recalls seeing complainant leave alone at 7:15pm, but complainant claims incident happened 'after everyone left.' No corroborating physical evidence submitted.",
-        "evidence_count": 2,
-        "witness_count": 1
+# Mock Users
+MOCK_USERS = {
+    "complainant_1": {
+        "id": "user_complainant_001",
+        "email": "alex.chen@northwestern.edu",
+        "name": "Alex Chen",
+        "role": "complainant"
     },
-    {
-        "id": "0148",
-        "case_number": "NW-2025-TIX-0148",
-        "category": "Title IX - Sexual Assault",
-        "status": "Investigation",
-        "priority": "Urgent",
-        "filed_date": "2025-03-18",
-        "description": "Complainant reports sexual assault by respondent during study session in graduate housing. Incident occurred March 16, 2025 at approximately 11:30pm. Three witnesses corroborate complainant's timeline and observed distressed state immediately after. Security footage confirms respondent entering and leaving building at times consistent with complainant's account. Text messages from 11:47pm show complainant reaching out to friend for support. Medical examination conducted within 24 hours.",
-        "evidence_count": 8,
-        "witness_count": 3
+    "complainant_2": {
+        "id": "user_complainant_002",
+        "email": "sarah.johnson@northwestern.edu",
+        "name": "Sarah Johnson",
+        "role": "complainant"
     },
-    {
-        "id": "0149",
-        "case_number": "NW-2025-TIX-0149",
-        "category": "Title IX - Discrimination",
-        "status": "Intake",
-        "priority": "Standard",
-        "filed_date": "2025-03-20",
-        "description": "Complainant alleges gender-based discrimination in faculty advisor assignment and research opportunities. Reports systematic exclusion from lab meetings and co-authorship opportunities while male peers received preferential treatment. Email records show 12 instances where complainant was excluded from group communications. Two other students (one current, one graduated) report similar patterns with same advisor.",
-        "evidence_count": 15,
-        "witness_count": 2
+    "respondent_1": {
+        "id": "user_respondent_001",
+        "email": "jordan.martinez@northwestern.edu",
+        "name": "Jordan Martinez",
+        "role": "respondent"
+    },
+    "investigator_1": {
+        "id": "user_investigator_001",
+        "email": "dr.chen@northwestern.edu",
+        "name": "Dr. Sarah Chen",
+        "role": "investigator"
+    },
+    "administrator_1": {
+        "id": "user_admin_001",
+        "email": "dean.martinez@northwestern.edu",
+        "name": "Dean Martinez",
+        "role": "administrator"
     }
-]
+}
 
-# Pre-processed AI analysis results
-# Case 0148 - Strong evidence, high consensus YES
-ANALYSIS_0148 = {
-    "question": "Does this incident meet Title IX hostile environment standard?",
-    "consensus_decision": "YES",
-    "consensus_confidence": 0.94,
-    "yes_votes": 5,
-    "no_votes": 0,
-    "yes_percentage": 100.0,
-    "disagreement_flag": False,
-    "recommendation": "HIGH CONFIDENCE: Strong consensus reached across all analysis frameworks. Evidence is substantial and corroborated. Proceed with formal investigation following standard protocols. Consider immediate interim protective measures.",
-    "agent_votes": [
+# Mock Cases
+def get_mock_cases():
+    """Generate mock cases with realistic data"""
+
+    base_date = datetime.now()
+
+    return [
         {
-            "agent": "Lex",
-            "specialty": "Legal Compliance Specialist",
-            "vote": "YES",
-            "confidence": 0.96,
-            "reasoning": "The described behavior clearly meets the legal standard for Title IX sexual assault. The conduct was unwelcome, severe, and interfered with the complainant's educational opportunities. All procedural elements for Title IX jurisdiction are satisfied: incident occurred in university-controlled housing, both parties are students, complainant filed within reasonable timeframe.",
-            "citations": [
-                "20 U.S.C. § 1681 (Title IX statute)",
-                "Davis v. Monroe County Board of Education, 526 U.S. 629 (1999) - severe conduct standard",
-                "OCR 2020 Title IX Final Rule §106.44 - response requirements",
-                "Northwestern University Title IX Policy Section 4.2 - formal complaint process"
-            ]
+            "id": "case_001",
+            "case_number": "NW-2025-TIX-0147",
+            "complainant_id": "user_complainant_001",
+            "respondent_id": "user_respondent_001",
+            "category": "Title IX",
+            "status": "Investigation",
+            "priority": "Standard",
+            "filed_date": (base_date - timedelta(days=15)).isoformat(),
+            "deadline_date": (base_date + timedelta(days=45)).isoformat(),
+            "incident_date": "2025-10-20",
+            "incident_location": "Off-campus Party",
+            "description": "Complainant alleges that respondent made unwelcome advances at an off-campus party. However, significant inconsistencies in the timeline. Complainant stated incident occurred at 10pm, but witness statements place both parties in different locations. Text messages between complainant and respondent show friendly conversation after alleged incident. No contemporaneous complaints filed. Respondent denies allegations and provides alibi with corroboration.",
+            "is_ongoing": False,
+            "created_at": (base_date - timedelta(days=15)).isoformat(),
+            "updated_at": (base_date - timedelta(days=2)).isoformat(),
+            "evidence_count": 4,
+            "witness_count": 2,
+            "prior_case_count": 0,
+            "department": "Kellogg School of Management",
+            "department_case_count": 7,
+            "relationship": "Peer - Same MBA cohort",
+            "complainant_demographics": "Female, 26, second-year MBA",
+            "respondent_demographics": "Male, 28, second-year MBA",
+            "evidence_summary": "Conflicting witness statements, text messages showing friendly post-incident interaction, respondent's alibi evidence"
         },
         {
-            "agent": "Sofia",
-            "specialty": "Trauma-Informed Specialist",
-            "vote": "YES",
-            "confidence": 0.92,
-            "reasoning": "Complainant's account shows clear trauma indicators consistent with genuine assault disclosure. Immediate disclosure to friend (within 17 minutes) is typical of authentic trauma responses. Seeking medical examination within 24 hours demonstrates appropriate help-seeking behavior. Witnesses observed visible distress, supporting psychological impact. The prompt reporting timeline and consistency of account across multiple tellings indicates high credibility.",
-            "citations": [
-                "Immediate disclosure typical in 67% of assault cases (Krebs et al., 2016)",
-                "Witness corroboration of distress state strengthens credibility",
-                "Medical examination sought promptly - consistent with trauma response",
-                "No indicators of fabricated account or secondary gain motives"
-            ]
+            "id": "case_002",
+            "case_number": "NW-2025-TIX-0148",
+            "complainant_id": "user_complainant_002",
+            "respondent_id": None,
+            "category": "Harassment",
+            "status": "Review",
+            "priority": "Urgent",
+            "filed_date": (base_date - timedelta(days=3)).isoformat(),
+            "deadline_date": (base_date + timedelta(days=57)).isoformat(),
+            "incident_date": "2025-11-05",
+            "incident_location": "Main Library - 3rd Floor Study Room",
+            "description": "Repeated harassing messages and stalking behavior. Complainant reports feeling unsafe on campus. Requesting immediate interim measures.",
+            "is_ongoing": True,
+            "created_at": (base_date - timedelta(days=3)).isoformat(),
+            "updated_at": (base_date - timedelta(days=1)).isoformat(),
+            "evidence_count": 2,
+            "witness_count": 1,
+            "prior_case_count": 0,
+            "department": "Weinberg College of Arts & Sciences",
+            "department_case_count": 3,
+            "relationship": "Unknown - non-student",
+            "complainant_demographics": "Female, 20, sophomore",
+            "respondent_demographics": "Unknown",
+            "evidence_summary": "Screenshots of messages, campus security report"
         },
         {
-            "agent": "Equity",
-            "specialty": "Bias Detection Specialist",
-            "vote": "YES",
-            "confidence": 0.93,
-            "reasoning": "Analysis of both accounts and investigator language reveals no significant bias. Language used is balanced and neutral across all parties. Both complainant and respondent given equal opportunity to present evidence and tell their stories. Interview durations were comparable. No gender-based language discrepancies detected in case documentation. Power dynamics appropriately considered (both are students, no hierarchical relationship).",
-            "citations": [
-                "Neutral language ratio: 96% compliant with bias-free standards",
-                "No gender-based language discrepancies detected",
-                "Equal treatment metrics: Interview time within 5% variance",
-                "No victim-blaming language present in investigator notes"
-            ]
-        },
-        {
-            "agent": "Holmes",
-            "specialty": "Evidence Analysis Specialist",
-            "vote": "YES",
-            "confidence": 0.95,
-            "reasoning": "Physical and digital evidence strongly corroborates complainant's timeline and account. Security camera footage timestamps match complainant's stated timeline within 3-minute margin. Text message metadata confirms outreach at 11:47pm, consistent with 11:30pm incident time. Three independent witnesses verify complainant's distressed state within 30 minutes of incident. Medical examination provides additional forensic support. No contradictory evidence has been presented. Chain of custody intact for all digital evidence.",
-            "citations": [
-                "3 witnesses independently corroborate complainant's timeline and distress",
-                "Security footage timestamp verified: 11:28pm entry, 12:14am exit",
-                "Text message metadata confirms: sent 11:47pm, received 11:48pm",
-                "Medical examination conducted March 17, 2025 at 2:15pm (within 24h window)",
-                "SHA-256 hash verified for all digital evidence - integrity confirmed"
-            ]
-        },
-        {
-            "agent": "Sentinel",
-            "specialty": "Risk Assessment Specialist",
-            "vote": "YES",
-            "confidence": 0.94,
-            "reasoning": "CRITICAL RISK: Database check reveals respondent has one prior informal complaint from 2023 involving similar allegations (unwanted sexual contact). Pattern suggests escalating behavior. Without institutional intervention, risk modeling predicts 82% probability of repeat offense within 18 months. Complainant shows documented psychological impact (counseling intake same week, temporary medical withdrawal from one course). Failure to investigate would expose institution to deliberate indifference liability under Title IX. URGENT recommendation: Implement interim restrictions immediately pending investigation outcome.",
-            "citations": [
-                "Prior complaint: NW-2023-TIX-0089 (informal resolution, similar pattern)",
-                "Risk assessment score: 8.7/10 (high risk category)",
-                "Reoffense probability model: 82% within 18 months without intervention",
-                "Complainant documented harm: CAPS intake 3/18, course withdrawal 3/19",
-                "Institutional liability exposure: HIGH under Gebser/Davis standards"
-            ]
+            "id": "case_003",
+            "case_number": "NW-2025-DIS-0089",
+            "complainant_id": "user_complainant_001",
+            "respondent_id": "user_respondent_001",
+            "category": "Discrimination",
+            "status": "Closed",
+            "priority": "Standard",
+            "filed_date": (base_date - timedelta(days=120)).isoformat(),
+            "deadline_date": (base_date - timedelta(days=60)).isoformat(),
+            "incident_date": "2025-07-15",
+            "incident_location": "Kellogg School of Management - Faculty Office",
+            "description": "International student from India alleges discrimination in research assistant selection. Professor consistently selected only domestic students despite complainant's higher GPA (3.9 vs avg 3.4) and relevant experience. Complainant overheard professor state 'international students create too much paperwork.' Email trail shows complainant applied 4 times over 2 semesters, never interviewed. Pattern analysis reveals 15 RA positions filled - 0 international students selected despite 40% international student body.",
+            "is_ongoing": False,
+            "created_at": (base_date - timedelta(days=120)).isoformat(),
+            "updated_at": (base_date - timedelta(days=60)).isoformat(),
+            "evidence_count": 6,
+            "witness_count": 3,
+            "prior_case_count": 0,
+            "department": "Kellogg School of Management",
+            "department_case_count": 2,
+            "relationship": "Faculty-Student",
+            "complainant_demographics": "Male, 24, international student (India), MS Analytics",
+            "respondent_demographics": "Male, 58, tenured professor, 15 years at NU",
+            "evidence_summary": "Email applications, witness statement re: discriminatory comment, RA selection data showing statistical disparity, professor's email responses"
         }
     ]
-}
 
-# Case 0149 - Strong evidence for discrimination, high consensus YES
-ANALYSIS_0149 = {
-    "question": "Does this incident meet Title IX hostile environment standard?",
-    "consensus_decision": "YES",
-    "consensus_confidence": 0.88,
-    "yes_votes": 5,
-    "no_votes": 0,
-    "yes_percentage": 100.0,
-    "disagreement_flag": False,
-    "recommendation": "HIGH CONFIDENCE: Clear pattern of gender-based discrimination with substantial documentary evidence. Email records demonstrate systematic exclusion. Corroborating witnesses strengthen case. Proceed with formal investigation. Consider interim measures to ensure complainant's access to research opportunities during investigation.",
-    "agent_votes": [
+# Mock Evidence
+def get_mock_evidence():
+    """Generate mock evidence items"""
+
+    return [
         {
-            "agent": "Lex",
-            "specialty": "Legal Compliance Specialist",
-            "vote": "YES",
-            "confidence": 0.90,
-            "reasoning": "The systematic exclusion based on gender meets the legal threshold for Title IX gender discrimination. Pattern of differential treatment in academic opportunities constitutes hostile educational environment. Email evidence demonstrates clear disparate treatment. The presence of corroborating witnesses reporting similar treatment patterns strengthens the legal case for Title IX violation. Faculty advisor's conduct falls within university's educational program jurisdiction.",
-            "citations": [
-                "Title IX prohibits gender discrimination in educational programs (20 U.S.C. § 1681)",
-                "Academic opportunity disparities constitute discriminatory environment",
-                "Pattern evidence across multiple complainants strengthens case (Matthews v. Nat'l Collegiate Athletic Ass'n)",
-                "Northwestern Faculty Code of Conduct Section 2.3 - equitable treatment requirements"
-            ]
+            "id": "evd_001",
+            "case_id": "case_001",
+            "file_name": "email_march_15.pdf",
+            "file_type": "application/pdf",
+            "file_data": "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKM...",  # Truncated base64
+            "uploaded_by": "complainant",
+            "uploaded_at": (datetime.now() - timedelta(days=14)).isoformat(),
+            "hash": hashlib.sha256(b"mock_email_content").hexdigest(),
+            "description": "Email from respondent dated March 15, 2025",
+            "ai_extracted_data": {
+                "sender": "jordan.martinez@northwestern.edu",
+                "date": "2025-03-15 14:32",
+                "key_phrases": ["meet up", "drinks"],
+                "timeline_position": "2025-03-15"
+            }
         },
         {
-            "agent": "Sofia",
-            "specialty": "Trauma-Informed Specialist",
-            "vote": "YES",
-            "confidence": 0.85,
-            "reasoning": "Complainant's account reflects psychological harm consistent with sustained discrimination exposure. Systematic exclusion from professional development opportunities creates cumulative trauma impact. The presence of corroborating witnesses who report similar patterns validates complainant's experience and reduces isolation. Chronic exposure to exclusionary environment demonstrates ongoing hostile conditions rather than isolated incident.",
-            "citations": [
-                "Chronic discrimination exposure linked to measurable psychological distress (Nadal et al., 2014)",
-                "Pattern recognition by multiple parties validates individual experience",
-                "Professional opportunity denial impacts career development and self-efficacy",
-                "Witness corroboration reduces isolation and validates complainant perception"
-            ]
+            "id": "evd_002",
+            "case_id": "case_001",
+            "file_name": "text_messages_screenshot.png",
+            "file_type": "image/png",
+            "file_data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA...",  # Truncated base64
+            "uploaded_by": "complainant",
+            "uploaded_at": (datetime.now() - timedelta(days=13)).isoformat(),
+            "hash": hashlib.sha256(b"mock_screenshot_content").hexdigest(),
+            "description": "Text message conversation screenshots",
+            "ai_extracted_data": {
+                "message_count": 12,
+                "date_range": "2025-03-20 to 2025-03-25",
+                "sentiment": "persistent_unwelcome_contact"
+            }
         },
         {
-            "agent": "Equity",
-            "specialty": "Bias Detection Specialist",
-            "vote": "YES",
-            "confidence": 0.89,
-            "reasoning": "Documentary evidence reveals clear gender-based pattern: 12 documented instances where complainant (female) was excluded from group communications while male peers were consistently included. Statistical analysis shows male students in same cohort received 3.2x more co-authorship opportunities. Two additional witnesses report identical patterns with same faculty member, indicating systemic rather than interpersonal issue. No legitimate pedagogical justification apparent for differential treatment.",
-            "citations": [
-                "Gender disparity analysis: 12 exclusion instances, 0 male peer exclusions in same timeframe",
-                "Co-authorship opportunity ratio: Male students 3.2x, statistically significant (p<0.01)",
-                "Pattern replication across 3 students (different cohorts) indicates systemic behavior",
-                "No documented performance-based rationale for differential treatment"
-            ]
+            "id": "evd_003",
+            "case_id": "case_001",
+            "file_name": "witness_statement_taylor.pdf",
+            "file_type": "application/pdf",
+            "file_data": "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKM...",
+            "uploaded_by": "investigator",
+            "uploaded_at": (datetime.now() - timedelta(days=5)).isoformat(),
+            "hash": hashlib.sha256(b"mock_witness_statement_1").hexdigest(),
+            "description": "Witness statement from Taylor Kim",
+            "ai_extracted_data": {
+                "witness_name": "Taylor Kim",
+                "corroborates": ["Timeline", "Respondent presence at event"],
+                "key_observations": "Witnessed uncomfortable interaction at networking event"
+            }
         },
         {
-            "agent": "Holmes",
-            "specialty": "Evidence Analysis Specialist",
-            "vote": "YES",
-            "confidence": 0.90,
-            "reasoning": "Email metadata analysis confirms systematic exclusion pattern. 12 documented emails sent to 'All Lab Members' distribution list that excluded complainant while including 4 male peers at same academic level. Email timestamps show pattern occurred over 8-month period (July 2024 - February 2025), demonstrating sustained rather than isolated behavior. Two witnesses (one current student, one 2023 graduate) provide independent corroboration of similar exclusionary patterns with same faculty advisor. Documentary evidence is substantial and verifiable.",
-            "citations": [
-                "12 verifiable email exclusions documented with metadata",
-                "Timeline analysis: 8-month sustained pattern (July 2024 - February 2025)",
-                "2 independent witnesses report similar patterns (2023 and 2024-2025 academic years)",
-                "Email distribution list analysis confirms selective exclusion by gender",
-                "No contradictory evidence or legitimate alternative explanation provided"
-            ]
-        },
-        {
-            "agent": "Sentinel",
-            "specialty": "Risk Assessment Specialist",
-            "vote": "YES",
-            "confidence": 0.87,
-            "reasoning": "HIGH RISK: Faculty member's pattern spans multiple years (2023-2025) affecting at least 3 students. This represents systemic discrimination risk with potential for additional unreported victims. Failure to investigate creates precedent that could enable continued discriminatory practices. Academic impact on complainant's career trajectory is substantial (lack of co-authorship opportunities directly impacts graduate school/career prospects). Institutional reputation risk is elevated given corroborating pattern evidence. Recommend immediate investigation and interim monitoring of advisor's student assignments.",
-            "citations": [
-                "Multi-year pattern (2023-2025) indicates entrenched behavior",
-                "3 known affected students suggests potential for additional unreported victims",
-                "Academic opportunity denial has measurable career impact for graduate students",
-                "Institutional liability exposure: MODERATE-HIGH under Title IX standards",
-                "Recommendation: Interim monitoring of advisor-student communications during investigation"
-            ]
+            "id": "evd_004",
+            "case_id": "case_002",
+            "file_name": "harassing_messages_screenshots.pdf",
+            "file_type": "application/pdf",
+            "file_data": "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKM...",
+            "uploaded_by": "complainant",
+            "uploaded_at": (datetime.now() - timedelta(days=2)).isoformat(),
+            "hash": hashlib.sha256(b"mock_harassment_screenshots").hexdigest(),
+            "description": "Screenshots of harassing messages via social media",
+            "ai_extracted_data": {
+                "message_count": 47,
+                "date_range": "2025-10-28 to 2025-11-05",
+                "threat_level": "moderate",
+                "escalation_pattern": True
+            }
         }
     ]
-}
 
-# Mock analysis results storage - case 0147 will NOT have pre-processed results
-MOCK_ANALYSIS_RESULTS = {
-    "0148": ANALYSIS_0148,
-    "0149": ANALYSIS_0149
-    # 0147 intentionally omitted - user must click "Analyze" button
-}
+# Mock AI Analyses (pre-computed for demo speed)
+def get_mock_ai_analyses():
+    """Pre-computed AI analysis results for instant demo"""
 
-def get_cases():
-    """Return all mock cases"""
-    return MOCK_CASES
+    return [
+        {
+            "id": "analysis_001",
+            "case_id": "case_001",
+            "question": "Does this incident meet Title IX hostile environment standard?",
+            "consensus_decision": "YES",
+            "consensus_confidence": 0.88,
+            "created_at": (datetime.now() - timedelta(days=10)).isoformat()
+        }
+    ]
 
-def get_case(case_id: str):
-    """Return specific case by ID"""
-    for case in MOCK_CASES:
-        if case["id"] == case_id:
-            return case
-    return None
+# Mock Pattern Alerts
+def get_mock_patterns():
+    """Mock pattern detection results"""
 
-def get_analysis(case_id: str):
-    """Return pre-processed analysis if available"""
-    return MOCK_ANALYSIS_RESULTS.get(case_id)
+    return [
+        {
+            "id": "pattern_001",
+            "respondent_id": "user_respondent_001",
+            "case_ids": ["case_001", "NW-2024-TIX-0089", "NW-2024-TIX-0103"],
+            "pattern_type": "Repeat Allegations - Similar MO",
+            "risk_score": 0.87,
+            "description": "Respondent Jordan Martinez has been named in 3 separate Title IX cases over 18 months. All involve allegations of unwelcome sexual conduct at social/networking events with similar patterns of behavior escalation.",
+            "detected_at": (datetime.now() - timedelta(days=5)).isoformat()
+        }
+    ]
 
-def has_analysis(case_id: str):
-    """Check if case has pre-processed analysis"""
-    return case_id in MOCK_ANALYSIS_RESULTS
+# Dashboard Stats
+def get_dashboard_stats():
+    """Mock dashboard statistics"""
+
+    return {
+        "total_cases": 24,
+        "active_cases": 8,
+        "pending_review": 3,
+        "approaching_deadline": 2,
+        "average_resolution_days": 52.3
+    }

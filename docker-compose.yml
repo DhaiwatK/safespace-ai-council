@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  safespace-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:8000"  # Map host:container
+    environment:
+      # LLM Provider: local, anthropic, or mock
+      - LLM_PROVIDER=local
+
+      # Anthropic API (set this when you have a key)
+      # - ANTHROPIC_API_KEY=your_api_key_here
+
+      # Local LLM (LM Studio running on host)
+      - LOCAL_LLM_URL=http://host.docker.internal:1234/v1
+      - LOCAL_LLM_MODEL=gemma-3-4b-it
+
+    # Allow container to access host services (for local LLM)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    # Optional: Uncomment to mount backend for live development
+    # volumes:
+    #   - ./backend/app:/app/app
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    restart: unless-stopped
+
+# Optional: If you want to run LM Studio in Docker (advanced)
+# See: https://github.com/lmstudio-ai/lmstudio-docker

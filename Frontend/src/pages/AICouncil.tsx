@@ -124,7 +124,7 @@ const AICouncil = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="border-b bg-card shadow-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

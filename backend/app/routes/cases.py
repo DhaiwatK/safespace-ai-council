@@ -14,6 +14,7 @@ from app.data.mock_data import get_mock_cases, get_dashboard_stats
 router = APIRouter(prefix="/api/cases", tags=["Cases"])
 
 
+@router.get("", response_model=List[Case])
 @router.get("/", response_model=List[Case])
 async def get_cases(status: str = None, category: str = None):
     """

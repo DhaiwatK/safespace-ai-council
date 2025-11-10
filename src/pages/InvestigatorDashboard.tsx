@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { Search, AlertTriangle, Filter, Users, BarChart3, Settings, Brain } from "lucide-react";
+import { Search, AlertTriangle, Filter, Users, BarChart3, Settings, Brain, LogOut } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const InvestigatorDashboard = () => {
   const navigate = useNavigate();
@@ -58,6 +59,15 @@ const InvestigatorDashboard = () => {
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
+              </Button>
+              <ThemeToggle />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate("/")}
+                title="Exit to Home"
+              >
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -124,7 +134,7 @@ const InvestigatorDashboard = () => {
                   className={`p-6 hover-lift cursor-pointer border-l-4 ${
                     caseItem.priority === "Urgent" ? "border-l-destructive" : "border-l-primary"
                   }`}
-                  onClick={() => navigate("/investigator/council")}
+                  onClick={() => navigate("/investigator/council", { state: { caseNumber: caseItem.caseNumber } })}
                 >
                   <div className="space-y-4">
                     {/* Header Row */}

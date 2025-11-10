@@ -7,8 +7,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
-import { Lock, CheckCircle, Upload, FileText, ArrowLeft, ArrowRight } from "lucide-react";
+import { Lock, CheckCircle, Upload, FileText, ArrowLeft, ArrowRight, LayoutDashboard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const ComplainantIntake = () => {
   const navigate = useNavigate();
@@ -61,9 +62,16 @@ const ComplainantIntake = () => {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Exit
             </Button>
-            <Badge variant="outline" className="font-mono">
-              Session: {sessionCode}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/complainant/dashboard")}>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Dashboard
+              </Button>
+              <Badge variant="outline" className="font-mono">
+                Session: {sessionCode}
+              </Badge>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>

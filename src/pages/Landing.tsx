@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, Users, Settings, Phone } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -35,9 +36,12 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
-        <div className="flex items-center gap-3">
-          <ShieldCheck className="h-10 w-10 text-purple" />
-          <h1 className="text-2xl font-bold text-purple">SAFESPACE</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="h-10 w-10 text-purple" />
+            <h1 className="text-2xl font-bold text-purple">SAFESPACE</h1>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 

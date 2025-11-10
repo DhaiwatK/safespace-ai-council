@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, FileText, MessageSquare, HelpCircle, CheckCircle, Clock, ArrowLeft } from "lucide-react";
+import { ShieldCheck, FileText, MessageSquare, HelpCircle, CheckCircle, Clock, ArrowLeft, Plus } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const ComplainantDashboard = () => {
   const navigate = useNavigate();
@@ -37,9 +38,16 @@ const ComplainantDashboard = () => {
               <ShieldCheck className="h-6 w-6 text-purple" />
               <h1 className="text-xl font-bold">SAFESPACE</h1>
             </div>
-            <Badge variant="outline" className="font-mono">
-              Session: {sessionCode}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/complainant/intake")}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Report
+              </Button>
+              <Badge variant="outline" className="font-mono">
+                Session: {sessionCode}
+              </Badge>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>

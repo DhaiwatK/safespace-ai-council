@@ -22,7 +22,7 @@ const AICouncil = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [expandedAgents, setExpandedAgents] = useState<string[]>([]);
 
-  // Fetch case data on mount
+  // Fetch case data and cached analysis on mount
   useEffect(() => {
     const fetchCase = async () => {
       if (!caseId) {
@@ -38,6 +38,18 @@ const AICouncil = () => {
       try {
         const data = await casesAPI.getCase(caseId);
         setCaseData(data);
+
+        // Check for cached analysis
+        try {
+          const cachedAnalysis = await aiAPI.getCachedAnalysis(caseId);
+          if (cachedAnalysis) {
+            setAnalysisResult(cachedAnalysis);
+            console.log("✓ Loaded cached analysis for", caseId);
+          }
+        } catch (error) {
+          // No cached analysis available - that's ok
+          console.log("No cached analysis for", caseId);
+        }
       } catch (error) {
         console.error("Failed to fetch case:", error);
         toast({

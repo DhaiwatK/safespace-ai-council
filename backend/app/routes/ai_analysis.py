@@ -7,6 +7,7 @@ from typing import List
 from app.models.schemas import AIAnalysisRequest, ConsensusResult, PatternAlert
 from app.ai_agents.consensus import run_consensus, analyze_title_ix_jurisdiction
 from app.data.mock_data import get_mock_cases, get_mock_patterns
+from app.analysis_cache import get_cached_analysis, cache_analysis
 
 router = APIRouter(prefix="/api/ai", tags=["AI Analysis"])
 
@@ -17,6 +18,7 @@ async def analyze_case(request: AIAnalysisRequest):
     Run multi-agent consensus analysis on a case
 
     This is the core innovation - coordinates all 5 AI agents
+    Supports caching - returns cached result if available
     """
 
     # Get case data
@@ -31,12 +33,35 @@ async def analyze_case(request: AIAnalysisRequest):
     if not case_data:
         raise HTTPException(status_code=404, detail="Case not found")
 
+    # Check cache first
+    cached_result = get_cached_analysis(case_data["id"])
+    if cached_result:
+        print(f"✓ Returning cached analysis for {case_data['id']}")
+        return ConsensusResult(**cached_result)
+
     # Run multi-agent consensus
     try:
         result = run_consensus(request.question, case_data)
+
+        # Cache the result
+        cache_analysis(case_data["id"], result.dict())
+        print(f"✓ Cached new analysis for {case_data['id']}")
+
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")
+
+
+@router.get("/analyze/{case_id}/cached")
+async def get_cached_case_analysis(case_id: str):
+    """
+    Get cached analysis for a case if it exists
+    Returns None if no cache available
+    """
+    cached = get_cached_analysis(case_id)
+    if cached:
+        return ConsensusResult(**cached)
+    return None
 
 
 @router.get("/analyze/title-ix/{case_id}", response_model=ConsensusResult)
@@ -58,9 +83,20 @@ async def analyze_title_ix(case_id: str):
     if not case_data:
         raise HTTPException(status_code=404, detail="Case not found")
 
+    # Check cache first
+    cached_result = get_cached_analysis(case_data["id"])
+    if cached_result:
+        print(f"✓ Returning cached Title IX analysis for {case_data['id']}")
+        return ConsensusResult(**cached_result)
+
     # Run Title IX analysis
     try:
         result = analyze_title_ix_jurisdiction(case_data)
+
+        # Cache the result
+        cache_analysis(case_data["id"], result.dict())
+        print(f"✓ Cached new Title IX analysis for {case_data['id']}")
+
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")

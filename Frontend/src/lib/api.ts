@@ -142,6 +142,10 @@ export const aiAPI = {
     });
   },
 
+  getCachedAnalysis: async (caseId: string) => {
+    return apiRequest<any>(`/api/ai/analyze/${caseId}/cached`);
+  },
+
   analyzeTitleIX: async (caseId: string) => {
     return apiRequest<any>(`/api/ai/analyze/title-ix/${caseId}`);
   },

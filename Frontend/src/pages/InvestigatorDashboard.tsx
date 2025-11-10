@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,45 +7,89 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { Search, AlertTriangle, Filter, Users, BarChart3, Settings, Brain, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { casesAPI, aiAPI } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 const InvestigatorDashboard = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+  const [cases, setCases] = useState<any[]>([]);
+  const [patterns, setPatterns] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const cases = [
-    {
-      caseNumber: "NW-2025-TIX-0147",
-      category: "Sexual Harassment",
-      status: "Investigation",
-      priority: "Urgent",
-      progress: 35,
-      daysElapsed: 8,
-      deadline: "Dec 30, 2025",
-      complainant: "Alex K.",
-      respondent: "Jordan M.",
-    },
-    {
-      caseNumber: "NW-2025-TIX-0146",
-      category: "Discrimination",
-      status: "Review",
-      priority: "Standard",
-      progress: 15,
-      daysElapsed: 3,
-      deadline: "Jan 15, 2026",
-      complainant: "Taylor S.",
-      respondent: "Morgan P.",
-    },
-    {
-      caseNumber: "NW-2025-TIX-0145",
-      category: "Retaliation",
-      status: "Investigation",
-      priority: "Standard",
-      progress: 68,
-      daysElapsed: 41,
-      deadline: "Dec 18, 2025",
-      complainant: "Casey R.",
-      respondent: "Riley T.",
-    },
-  ];
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [casesData, patternsData, statsData] = await Promise.all([
+          casesAPI.getCases(),
+          aiAPI.getPatterns(),
+          casesAPI.getStats()
+        ]);
+
+        setCases(casesData);
+        setPatterns(patternsData);
+        setStats(statsData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        toast({
+          title: "Failed to load data",
+          description: "Could not connect to backend. Using demo mode.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const calculateProgress = (status: string) => {
+    const statusProgress: Record<string, number> = {
+      "Intake": 10,
+      "Review": 25,
+      "Investigation": 50,
+      "Hearing": 75,
+      "Resolution": 90,
+      "Closed": 100
+    };
+    return statusProgress[status] || 0;
+  };
+
+  const calculateDaysElapsed = (filedDate: string) => {
+    const filed = new Date(filedDate);
+    const now = new Date();
+    const diff = now.getTime() - filed.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const formatDeadline = (deadlineDate: string) => {
+    return new Date(deadlineDate).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
@@ -54,18 +99,19 @@ const InvestigatorDashboard = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold">Investigator Dashboard</h1>
-              <Badge variant="secondary">47 Active Cases</Badge>
+              {user && <span className="text-sm text-muted-foreground">Welcome, {user.name}</span>}
+              <Badge variant="secondary">{stats?.active_cases || cases.length} Active Cases</Badge>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
               </Button>
               <ThemeToggle />
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
-                onClick={() => navigate("/")}
-                title="Exit to Home"
+                onClick={handleLogout}
+                title="Logout"
               >
                 <LogOut className="h-5 w-5" />
               </Button>
@@ -111,84 +157,100 @@ const InvestigatorDashboard = () => {
             </div>
 
             {/* Pattern Alert */}
-            <Card className="p-6 bg-warning/10 border-warning/30">
-              <div className="flex items-start gap-4">
-                <AlertTriangle className="h-6 w-6 text-warning flex-shrink-0 mt-1" />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-2">Pattern Detected: Repeat Respondent</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Jordan M. appears in 3 cases with similar allegations. Risk assessment: HIGH (87%)
-                  </p>
-                  <Button variant="outline" size="sm">
-                    View Pattern Analysis
-                  </Button>
+            {patterns.length > 0 && patterns.map((pattern) => (
+              <Card key={pattern.id} className="p-6 bg-warning/10 border-warning/30">
+                <div className="flex items-start gap-4">
+                  <AlertTriangle className="h-6 w-6 text-warning flex-shrink-0 mt-1" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-2">Pattern Detected: {pattern.pattern_type}</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {pattern.description}
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <Badge variant="destructive">Risk Score: {Math.round(pattern.risk_score * 100)}%</Badge>
+                      <Button variant="outline" size="sm">
+                        View Pattern Analysis
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            ))}
 
             {/* Cases List */}
             <div className="space-y-4">
-              {cases.map((caseItem) => (
-                <Card
-                  key={caseItem.caseNumber}
-                  className={`p-6 hover-lift cursor-pointer border-l-4 ${
-                    caseItem.priority === "Urgent" ? "border-l-destructive" : "border-l-primary"
-                  }`}
-                  onClick={() => navigate("/investigator/council", { state: { caseNumber: caseItem.caseNumber } })}
-                >
-                  <div className="space-y-4">
-                    {/* Header Row */}
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold font-mono">{caseItem.caseNumber}</h3>
-                          <Badge
-                            variant={caseItem.priority === "Urgent" ? "destructive" : "secondary"}
-                            className="text-xs"
-                          >
-                            {caseItem.priority}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{caseItem.category}</Badge>
-                          <Badge variant="secondary">{caseItem.status}</Badge>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Brain className="mr-2 h-4 w-4" />
-                        AI Council
-                      </Button>
-                    </div>
-
-                    {/* Progress */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{caseItem.progress}%</span>
-                      </div>
-                      <Progress value={caseItem.progress} className="h-2" />
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-4">
-                        <span className="text-muted-foreground">
-                          Day <span className="font-medium text-foreground">{caseItem.daysElapsed}</span>
-                        </span>
-                        <span className="text-muted-foreground">
-                          Deadline: <span className="font-medium text-foreground">{caseItem.deadline}</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span className="text-xs">
-                          {caseItem.complainant} vs {caseItem.respondent}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+              {cases.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">No cases found</p>
                 </Card>
-              ))}
+              ) : (
+                cases.map((caseItem) => {
+                  const progress = calculateProgress(caseItem.status);
+                  const daysElapsed = calculateDaysElapsed(caseItem.filed_date);
+                  const deadline = formatDeadline(caseItem.deadline_date);
+
+                  return (
+                    <Card
+                      key={caseItem.id}
+                      className={`p-6 hover-lift cursor-pointer border-l-4 ${
+                        caseItem.priority === "Urgent" ? "border-l-destructive" : "border-l-primary"
+                      }`}
+                      onClick={() => navigate("/investigator/council", { state: { caseId: caseItem.id } })}
+                    >
+                      <div className="space-y-4">
+                        {/* Header Row */}
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-semibold font-mono">{caseItem.case_number}</h3>
+                              <Badge
+                                variant={caseItem.priority === "Urgent" ? "destructive" : "secondary"}
+                                className="text-xs"
+                              >
+                                {caseItem.priority}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline">{caseItem.category}</Badge>
+                              <Badge variant="secondary">{caseItem.status}</Badge>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Brain className="mr-2 h-4 w-4" />
+                            AI Council
+                          </Button>
+                        </div>
+
+                        {/* Progress */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-medium">{progress}%</span>
+                          </div>
+                          <Progress value={progress} className="h-2" />
+                        </div>
+
+                        {/* Metadata */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-4">
+                            <span className="text-muted-foreground">
+                              Day <span className="font-medium text-foreground">{daysElapsed}</span>
+                            </span>
+                            <span className="text-muted-foreground">
+                              Deadline: <span className="font-medium text-foreground">{deadline}</span>
+                            </span>
+                          </div>
+                          {caseItem.evidence_count > 0 && (
+                            <div className="text-xs text-muted-foreground">
+                              {caseItem.evidence_count} evidence items
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
